@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <form class="row needs-validation" id="otp-form-data" novalidate>
+        <div class="col-md-12">
+            <span id="getMessage"></span>
+        </div>
+        <div class="col-md-6">
+            <label for="formName" class="form-label"></label>
+            <input type="text" class="form-control" id="form_Name" placeholder="Name" required>
+        </div>
+        <div class="col-md-6">
+            <label for="FormPhone" class="form-label"></label>
+            <input type="text" class="form-control" id="Form_Phone" placeholder="Phone" required>
+        </div>
+
+        <div class="col-md-6">
+            <label for="FormEMail" class="form-label"></label>
+            <input type="email" class="form-control" id="Form_Email" placeholder="Email" required>
+        </div>
+
+        <div class="col-md-6" id="otpSendBtn">
+            <label for="FormEMail" class="form-label"></label>
+            <button class="btn btn-primary w-100" type="button" onclick="sendOtp()">Click here to verify
+                your Email</button>
+        </div>
+        <div class="col-md-6" id="varify_otp">
+            <label for="varify_otp" class="form-label"></label>
+            <input type="text" class="form-control" id="varify_otp_value" placeholder="******" maxlength="6">
+        </div>
+        <div class="col-md-6" id="otpverify">
+            <label for="FormEMail" class="form-label"></label>
+            <button class="btn btn-primary w-100" type="button" onclick="verifyOtp()">verify otp</button>
+        </div>
+
+
+
+        <div class="col-md-6">
+            <label for="validationCustom04" class="form-label"></label>
+            <select class="form-select" id="workExp" required>
+                <option selected disabled value="">Select Your Work Exp.</option>
+                <option value="Min. 2 years of work experience">Min. 2 years of work experience</option>
+                <option value="2 - 5 years">2 - 5 years</option>
+                <option value="5 - 10 years">5 - 10 years</option>
+                <option value="10+ years">10+ years</option>
+            </select>
+
+        </div>
+
+        <div class="col-md-12">
+            <label for="YourLocation" class="form-label"></label>
+            <input type="text" class="form-control" id="YourLocation" placeholder="Location" required>
+        </div>
+
+
+        <div class="col-12 text-center mt-2">
+            <button class="btn btn-primary" type="button" disabled="" id="submitBtn" onclick="submitForm()">Submit
+                form</button>
+        </div>
+    </form>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        document.getElementById('varify_otp').style.display = 'none';
+        document.getElementById('otpverify').style.display = 'none';
+
+        function sendOtp() {
+            var email = document.getElementById('Form_Email').value;
+
+            if (email !== '') {
+
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'http://127.0.0.1:8000/api/otp-send');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            console.log(xhr.responseText);
+                            var res = JSON.parse(xhr.responseText);
+                            document.getElementById('getMessage').innerText = res.message;
+                            document.getElementById('otpSendBtn').style.display = 'none';
+                            document.getElementById('otpverify').style.display = 'block';
+                            document.getElementById('varify_otp').style.display = 'block';
+                        } else {
+                            var error = JSON.parse(xhr.responseText);
+                            document.getElementById('getMessage').innerText = error.error;
+                        }
+                    }
+                };
+
+                xhr.send('email=' + encodeURIComponent(email));
+            } else {
+                document.getElementById('getMessage').innerText = 'Please provide an email address.';
+            }
+        }
+
+
+        function verifyOtp() {
+            var otp = document.getElementById('varify_otp_value').value;
+
+            if (otp !== '') {
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', 'http://127.0.0.1:8000/api/otp-verify');
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            console.log(xhr.responseText);
+                            var res = JSON.parse(xhr.responseText);
+                            document.getElementById('getMessage').innerText = res.message;
+                            document.getElementById('submitBtn').disabled = false;
+                        } else {
+                            var error = JSON.parse(xhr.responseText);
+                            document.getElementById('getMessage').innerText = error.error;
+                        }
+                    }
+                };
+
+                xhr.send('otp=' + encodeURIComponent(otp));
+            } else {
+                document.getElementById('getMessage').innerText = 'Please provide an otp.';
+            }
+        }
+
+
+        function submitForm() {
+            var name = document.getElementById('form_Name').value;
+            var number = document.getElementById('Form_Phone').value;
+            var email = document.getElementById('Form_Email').value;
+            var work_exp = document.getElementById('workExp').value;
+            var location = document.getElementById('YourLocation').value;
+
+
+            var formData = new FormData();
+            formData.append('name', name);
+            formData.append('number', number);
+            formData.append('email', email);
+            formData.append('work_exp', work_exp);
+            formData.append('location', location);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'http://127.0.0.1:8000/api/form-submit', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        document.getElementById('getMessage').innerText = 'Form submitted successfully.';
+                    } else {
+                        document.getElementById('getMessage').innerText = 'Form submission failed.';
+                    }
+                }
+            };
+            xhr.send(formData);
+
+        }
+    </script>
+</body>
+
+</html>
